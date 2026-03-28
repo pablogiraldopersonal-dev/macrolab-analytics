@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { margin: 0; background-color: #050a18; font-family: 'Inter', sans-serif; }
+        
+        .top-bar-ia {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 30px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 15px 20px; 
+            border-radius: 15px; 
+            position: sticky;
+            top: 15px;
+            z-index: 9999;
+        }
+
+        .nav-pills {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px;
+            border-radius: 10px;
+            gap: 5px;
+        }
+
+        .nav-pill {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 6px 15px;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .nav-pill:hover, .nav-pill.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 7px;
+        }
+
+        .user-profile-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .user-profile-menu:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #00f2ff;
+            object-fit: cover;
+        }
+
+        .user-info-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            color: #00f2ff;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ARREGLO DEL PUENTE INVISIBLE */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: transparent; /* Fondo transparente para el puente */
+            min-width: 180px;
+            padding-top: 15px; /* EL PUENTE: Mantiene el menú abierto mientras bajas el mouse */
+            margin-top: -5px;  /* Ajuste para que no se note el hueco */
+            z-index: 9999;
+        }
+
+        /* Estilo real de la caja del menú (dentro del contenedor transparente) */
+        .dropdown-box {
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .user-profile-menu:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(0, 242, 255, 0.1);
+            color: white;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .top-bar-ia img {
+    height: 42px; /* Aumentamos de 32px a 42px */
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.3)) brightness(1.2); /* Más brillo y sombra */
+    transition: 0.4s ease-in-out;
+}
+
+.top-bar-ia img:hover {
+    filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.6)) brightness(1.4);
+    transform: scale(1.1) rotate(-2deg); /* Un pequeño giro le da un toque dinámico */
+}
+
+.logo-main {
+    height: 90px !important; /* <--- AQUÍ ESTÁ EL CAMBIO. De 50px subimos a 65px */
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px rgba(0, 242, 255, 0.4)) brightness(1.2); /* <--- Aumentamos sutilmente el brillo y la sombra para que resalte aún más */
+    transition: 0.4s ease-in-out;
+}
+
+.logo-main:hover {
+    filter: drop-shadow(0 0 22px rgba(0, 242, 255, 0.8)) brightness(1.4); /* <--- Brillo más intenso al hover */
+    transform: scale(1.15) rotate(-3deg); /* <--- Un poco más de escala y un ligero giro para que se vea institucional pero moderno */
+}
+
+    </style>
+</head>
+<body>
+    {% block nav %}
+    <nav class="top-bar-ia">
+        <a href="/" style="text-decoration: none; color:white; font-weight:bold; display:flex; align-items:center; gap:12px;">
+    <img src="{{ url_for('static', filename='img/logo_analytics.png') }}" alt="Logo" class="logo-main">
+    
+    <span style="letter-spacing: 2px; font-family: 'Inter', sans-serif; font-size: 16px;">
+        MACROLAB <span style="color: #00f2ff;">ANALYTICS</span>
+    </span>
+</a>
+
+        <div class="nav-pills">
+            <a href="/" class="nav-pill {% if request.path == '/' %}active{% endif %}">Overview</a>
+            <a href="/bloques" class="nav-pill {% if request.path == '/bloques' %}active{% endif %}">Data Hub</a>
+            <a href="/nuevo" class="nav-pill {% if request.path == '/nuevo' %}active{% endif %}">Injection</a>
+            <a href="/biblioteca" class="nav-pill {% if request.path == '/biblioteca' %}active{% endif %}">Library</a>
+        </div>
+
+        <div class="user-profile-menu">
+            <div class="user-info-text" style="text-align: right;">
+                <span class="user-name">{{ session['nombre'] }}</span>
+                <span class="user-role">{{ session.get('rango', 'TRADER') }}</span>
+            </div>
+            
+            <img src="{{ url_for('static', filename='uploads/perfiles/' + session.get('foto_perfil', 'default_user.png')) }}" 
+                 alt="Avatar" class="user-avatar" 
+                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ session.get('nombre', 'U') }}&background=00f2ff&color=fff';">
+            
+            <div class="dropdown-content">
+                <div class="dropdown-box">
+                    <a href="/perfil" class="dropdown-item">
+                        <i class="fas fa-user-circle"></i> Mi Perfil
+                    </a>
+                    {% if session['username'] == 'pablo_giraldo' %}
+                    <a href="/admin/usuarios" class="dropdown-item">
+                        <i class="fas fa-user-shield"></i> Control CEO
+                    </a>
+                    {% endif %}
+                    <div class="dropdown-divider"></div>
+                    <a href="/logout" class="dropdown-item" style="color: #ef4444;">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div> </nav>
+    {% endblock %}
+
+    {% block content %}{% endblock %}
+</body>
+</html>

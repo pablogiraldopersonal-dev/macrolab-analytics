@@ -1,0 +1,680 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+    <title>Nuevo Evento - MacroLab</title>
+    <style>
+        html {
+            /* COMPACTO: Reduce la escala de todo un 10% */
+            zoom: 0.9; 
+        }
+
+        body {
+            background-color: #050a18;
+            margin: 0;
+            /* COMPACTO: Reduce el padding del body */
+            padding: 10px; 
+            font-family: 'Inter', sans-serif;
+            color: #e2ebf0;
+            overflow-x: hidden;
+        }
+
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            /* COMPACTO: Alinea al principio, no al centro, para ganar espacio arriba */
+            align-items: flex-start; 
+            min-height: 100vh;
+            /* COMPACTO: Añade un pequeño margen superior */
+            padding-top: 20px; 
+        }   
+
+        #canvas-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Tu contenedor de formulario (ajusta el nombre de la clase si es distinto) */
+       .container {
+            background: rgba(16, 35, 66, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            /* AUMENTADO: Padding global de 40px para más respiración */
+            padding: 40px; 
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 600px;
+            /* SEGURO: Centrado */
+            margin: 40px auto; 
+        }
+
+        /* Estilo para los inputs para que no desentonen */
+        input, select {
+            background: rgba(31, 41, 55, 0.7) !important;
+            border: 1px solid rgba(55, 65, 81, 1) !important;
+            color: white !important;
+            border-radius: 8px !important;
+            padding: 12px !important;
+        }
+
+        .card {
+            background: rgba(16, 35, 66, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            /* COMPACTO: Reduce el padding interno de 40px a 25px */
+            padding: 25px; 
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            width: 100%;
+            /* COMPACTO: Reduce el ancho máximo de 600px a 500px */
+            max-width: 500px; 
+        }
+
+        h1 {
+            text-align: center;
+            /* COMPACTO: Reduce el tamaño de fuente del título */
+            font-size: 1.8rem; 
+            /* COMPACTO: Reduce el margen inferior */
+            margin-bottom: 15px; 
+            margin-top: 0;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        /* COMPACTO: Reduce el tamaño de todos los inputs y selects */
+        input, select {
+            width: 100%;
+            /* COMPACTO: Reduce el padding interno */
+            padding: 8px 12px !important; 
+            /* COMPACTO: Reduce el margen inferior */
+            margin-bottom: 8px !important; 
+            background: rgba(31, 41, 55, 0.7) !important;
+            border: 1px solid rgba(55, 65, 81, 1) !important;
+            border-radius: 8px !important;
+            color: white !important;
+            /* COMPACTO: Reduce el tamaño de fuente interno */
+            font-size: 0.9rem; 
+        }
+
+        .top-fields {
+            /* COMPACTO: Reduce el margen inferior de la sección superior */
+            margin-bottom: 15px; 
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .evento-box {
+            background: rgba(15, 23, 42, 0.6);
+            /* COMPACTO: Reduce el padding interno */
+            padding: 12px; 
+            /* COMPACTO: Reduce el margen inferior entre eventos */
+            margin-bottom: 15px; 
+            border-radius: 8px;
+            border: 1px solid #334155;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            /* COMPACTO: Reduce el espacio entre campos internos */
+            gap: 6px; 
+        }
+
+        /* COMPACTO: Ajusta el botón verde para que coincida con el nuevo alto */
+        .tipo-flex .green-arrow-btn {
+            background: #22c55e !important;
+            border: none;
+            border-radius: 8px;
+            padding: 0; /* Quitamos padding para controlar alto exacto */
+            width: 38px; /* Un poco más estrecho */
+            height: 38px; /* Alto compactado */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        /* Asegura alineación */
+        .tipo-flex {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Botones de abajo compactos */
+        button {
+            /* COMPACTO: Reduce el padding de los botones */
+            padding: 8px 12px; 
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        button {
+            padding: 6px 10px;
+            background: #22c55e;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            margin-top: 8px;
+        }
+
+        .evento-box {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px; /* Separación entre bloques de eventos */
+            border: 1px solid #334155;
+            position: relative;
+            /* GRID o FLEX para el interior */
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Espacio vertical entre los campos */
+        }
+
+        /* Contenedor específico para el par de selector/botón verde */
+        .tipo-flex {
+            display: flex;
+            gap: 10px;
+            align-items: center; /* Alinea verticalmente */
+            width: 100%;
+        }
+        
+        /* Asegura que el selector ocupe el espacio */
+        .tipo-flex select {
+            flex: 1;
+        }
+
+        /* Botón verde de flecha */
+        .green-arrow-btn {
+            background: #22c55e !important;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            width: 45px;
+            height: 45px; /* Mismo alto que el selector */
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .suggestions {
+            margin-top: 6px;
+            font-size: 12px;
+        }
+
+        .suggestion-item {
+            display: block;
+            background: #334155;
+            padding: 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+
+        .nucleo { color: #22c55e; }
+        .sec { color: #facc15; }
+
+        .dropdown-panel {
+            position: absolute;
+            top: 55px;
+            right: -260px;
+            width: 240px;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            z-index: 100;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .dropdown-item input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        .apply-btn {
+            width: 100%;
+            margin-top: 10px;
+            background: #ef4444;
+        }
+
+        .top-fields {
+            margin-bottom: 25px;
+            /* USAREMOS FLEX para separarlos automáticamente */
+            display: flex;
+            gap: 15px; /* Espacio entre fecha y hora */
+            flex-wrap: wrap; /* Para móviles */
+        }
+        
+        /* Aseguramos que los inputs de fecha/hora se expandan */
+        .top-fields input {
+            flex: 1; 
+            min-width: 140px;
+        }
+
+/* ... otros estilos que ya tienes ... */
+
+        .btn-regresar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            color: #e2ebf0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .btn-regresar:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #00f2ff;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+            transform: translateX(-3px);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-network"></canvas>
+<div class="main-wrapper">
+    <a href="/" class="btn-regresar">
+    <span class="icon">←</span> Inicio
+</a>
+
+<div class="card">
+    <h1>➕ Añadir Evento al Bloque</h1>
+
+    <form method="POST">
+
+        <div class="top-fields">
+            <input type="date" name="fecha" required>
+            <input type="time" name="hora" required>
+            <input type="text" name="divisa" placeholder="Divisa (USD, EUR...)">
+        </div>
+
+        <div id="eventos-container"></div>
+
+        <button type="button" onclick="addEvent()">+ Agregar Evento</button>
+
+        <br><br>
+        <button type="submit">Guardar Bloque</button>
+
+    </form>
+</div>
+
+<script>
+
+const BLOQUES = {{ BLOQUES | tojson }};
+
+const EVENTOS = {
+
+    // ================= USD =================
+
+    "Nonfarm Payrolls": { bloque:"NFP", tipo:"NUCLEO", divisa:"USD", alias:["nfp","payroll"] },
+    "Unemployment Rate": { bloque:"NFP", tipo:"NUCLEO", divisa:"USD", alias:["unemployment"] },
+    "Average Hourly Earnings (MoM)": { bloque:"NFP", tipo:"NUCLEO", divisa:"USD", alias:["earnings"] },
+
+    "Average Hourly Earnings (YoY)": { bloque:"NFP", tipo:"SECUNDARIO", divisa:"USD", alias:["earnings yoy"] },
+    "Labor Force Participation Rate": { bloque:"NFP", tipo:"SECUNDARIO", divisa:"USD", alias:["participation"] },
+    "Average Weekly Hours": { bloque:"NFP", tipo:"SECUNDARIO", divisa:"USD", alias:["hours"] },
+    "Private Nonfarm Payrolls": { bloque:"NFP", tipo:"SECUNDARIO", divisa:"USD", alias:["private payroll"] },
+    "Manufacturing Payrolls": { bloque:"NFP", tipo:"SECUNDARIO", divisa:"USD", alias:["manufacturing payroll"] },
+    "U-6 Unemployment Rate": { bloque:"NFP", tipo:"SECUNDARIO", divisa:"USD", alias:["u6"] },
+
+    "Consumer Price Index (YoY)": { bloque:"CPI", tipo:"NUCLEO", divisa:"USD", alias:["cpi","inflation"] },
+    "Core CPI (YoY)": { bloque:"CPI", tipo:"NUCLEO", divisa:"USD", alias:["core cpi"] },
+    "Consumer Price Index (MoM)": { bloque:"CPI", tipo:"SECUNDARIO", divisa:"USD", alias:["cpi mom"] },
+    "Consumer Price Index (YoY)": { bloque:"CPI", tipo:"SECUNDARIO", divisa:"USD", alias:["cpi yoy"] },
+
+    "Core PCE Price Index (MoM)": { bloque:"PCE", tipo:"NUCLEO", divisa:"USD", alias:["pce"] },
+    "Core PCE Price Index (YoY)": { bloque:"PCE", tipo:"NUCLEO", divisa:"USD", alias:["pce yoy"] },
+    "PCE Price Index": { bloque:"PCE", tipo:"SECUNDARIO", divisa:"USD", alias:["pce headline"] },
+    "Personal Income": { bloque:"PCE", tipo:"SECUNDARIO", divisa:"USD", alias:["income"] },
+    "Personal Spending": { bloque:"PCE", tipo:"SECUNDARIO", divisa:"USD", alias:["spending"] },
+
+    "Federal Funds Rate": { bloque:"RATE", tipo:"NUCLEO", divisa:"USD", alias:["fed rate"] },
+
+    "ISM Manufacturing PMI": { bloque:"ISM", tipo:"CONDICIONAL", divisa:"USD", alias:["ism manufacturing"] },
+    "ISM Non-Manufacturing PMI": { bloque:"ISM", tipo:"CONDICIONAL", divisa:"USD", alias:["ism services"] },
+    "ISM Manufacturing Employment": { bloque:"ISM", tipo:"SECUNDARIO", divisa:"USD", alias:["ism employment"] },
+    "ISM Manufacturing Prices": { bloque:"ISM", tipo:"SECUNDARIO", divisa:"USD", alias:["ism prices"] },
+
+    "Philadelphia Fed Manufacturing Index": { bloque:"OTRO", tipo:"CONDICIONAL", divisa:"USD", alias:["philly fed"] },
+
+
+
+    // ================= CAD =================
+
+    "Employment Change": { bloque:"EMPLOYMENT", tipo:"NUCLEO", divisa:"CAD", alias:["employment cad"] },
+    "Unemployment Rate": { bloque:"EMPLOYMENT", tipo:"NUCLEO", divisa:"CAD", alias:["unemployment cad"] },
+    "Participation Rate": { bloque:"EMPLOYMENT", tipo:"SECUNDARIO", divisa:"CAD", alias:["participation cad"] },
+
+    "Consumer Price Index (MoM)": { bloque:"CPI", tipo:"NUCLEO", divisa:"CAD", alias:["cpi cad"] },
+    "Core CPI": { bloque:"CPI", tipo:"NUCLEO", divisa:"CAD", alias:["core cpi cad"] },
+
+    "BoC Interest Rate Decision": { bloque:"RATE", tipo:"NUCLEO", divisa:"CAD", alias:["boc rate"] },
+
+    "GDP (MoM)": { bloque:"GDP", tipo:"CONDICIONAL", divisa:"CAD", alias:["gdp cad"] },
+    "Building Permits (MoM)": { bloque:"OTRO", tipo:"CONDICIONAL", divisa:"CAD", alias:["building permits"] },
+
+
+
+    // ================= EUR =================
+
+    "HICP (YoY)": { bloque:"CPI", tipo:"NUCLEO", divisa:"EUR", alias:["hicp"] },
+    "Core CPI (YoY)": { bloque:"CPI", tipo:"NUCLEO", divisa:"EUR", alias:["core eur"] },
+
+    "ECB Interest Rate Decision": { bloque:"RATE", tipo:"NUCLEO", divisa:"EUR", alias:["ecb rate"] },
+
+    "GDP (QoQ)": { bloque:"GDP", tipo:"CONDICIONAL", divisa:"EUR", alias:["gdp eur"] },
+
+    "ZEW Economic Sentiment": { bloque:"OTRO", tipo:"CONDICIONAL", divisa:"EUR", alias:["zew"] },
+
+    "Manufacturing PMI": { bloque:"PMI", tipo:"CONDICIONAL", divisa:"EUR", alias:["pmi eur"] },
+    "Services PMI": { bloque:"PMI", tipo:"CONDICIONAL", divisa:"EUR", alias:["services pmi eur"] },
+
+
+
+    // ================= GBP =================
+
+    "Consumer Price Index (YoY)": { bloque:"CPI", tipo:"NUCLEO", divisa:"GBP", alias:["cpi gbp"] },
+    "Core CPI (YoY)": { bloque:"CPI", tipo:"NUCLEO", divisa:"GBP", alias:["core gbp"] },
+
+    "BoE Interest Rate Decision": { bloque:"RATE", tipo:"NUCLEO", divisa:"GBP", alias:["boe rate"] },
+
+    "GDP (MoM)": { bloque:"GDP", tipo:"CONDICIONAL", divisa:"GBP", alias:["gdp uk"] },
+
+    "Claimant Count Change": { bloque:"EMPLOYMENT", tipo:"NUCLEO", divisa:"GBP", alias:["employment uk"] },
+    "Average Earnings Index": { bloque:"EMPLOYMENT", tipo:"SECUNDARIO", divisa:"GBP", alias:["earnings uk"] },
+
+    "Retail Sales (MoM)": { bloque:"OTRO", tipo:"CONDICIONAL", divisa:"GBP", alias:["retail uk"] },
+
+
+
+    // ================= AUD =================
+
+    "RBA Interest Rate Decision": { bloque:"RATE", tipo:"NUCLEO", divisa:"AUD", alias:["rba rate"] },
+
+    "Employment Change": { bloque:"EMPLOYMENT", tipo:"NUCLEO", divisa:"AUD", alias:["employment aud"] },
+    "Unemployment Rate": { bloque:"EMPLOYMENT", tipo:"NUCLEO", divisa:"AUD", alias:["unemployment aud"] },
+    "Participation Rate": { bloque:"EMPLOYMENT", tipo:"SECUNDARIO", divisa:"AUD", alias:["participation aud"] },
+
+    "Retail Sales (MoM)": { bloque:"OTRO", tipo:"CONDICIONAL", divisa:"AUD", alias:["retail aud"] },
+    "Trade Balance": { bloque:"OTRO", tipo:"CONDICIONAL", divisa:"AUD", alias:["trade balance"] },
+
+    "Consumer Price Index (YoY)": { bloque:"CPI", tipo:"NUCLEO", divisa:"AUD", alias:["cpi aud"] }
+
+};
+
+function addEvent(nombre="", tipo="NUCLEO") {
+
+    const container = document.getElementById("eventos-container");
+
+    const div = document.createElement("div");
+    div.className = "evento-box";
+
+    div.innerHTML = `
+        <select name="divisa_evento">
+    <option value="USD">USD</option>
+    <option value="EUR">EUR</option>
+    <option value="CAD">CAD</option>
+    <option value="AUD">AUD</option>
+    <option value="GBP">GBP</option>
+</select>
+
+<input type="text" name="nombre_evento"
+       placeholder="Nombre del evento"
+       value="${nombre}"
+       oninput="autoComplete(this)"
+       required>
+
+        <div style="display:flex; gap:8px;">
+           <select name="tipo_interno">
+    <option value="NUCLEO" ${tipo==="NUCLEO"?"selected":""}>NUCLEO</option>
+    <option value="CONDICIONAL" ${tipo==="CONDICIONAL"?"selected":""}>CONDICIONAL</option>
+    <option value="SECUNDARIO" ${tipo==="SECUNDARIO"?"selected":""}>SECUNDARIO</option>
+</select>
+
+            <button type="button" onclick="togglePanel(this)">↓</button>
+        </div>
+
+        <input type="text" name="prevision" placeholder="Previsión (130K, 4.3%)">
+        <input type="text" name="anterior" placeholder="Anterior">
+        <input type="text" name="real" placeholder="Real (opcional)">
+
+        <button type="button" class="remove-btn"
+                onclick="this.parentElement.remove()">Eliminar</button>
+
+        <div class="suggestions"></div>
+    `;
+
+    container.appendChild(div);
+}
+
+function autoComplete(input) {
+
+    const texto = input.value.toLowerCase();
+    const parent = input.closest(".evento-box");
+    const suggestionBox = parent.querySelector(".suggestions");
+    suggestionBox.innerHTML = "";
+
+    if (texto.length < 2) return;
+
+    for (let nombre in EVENTOS) {
+
+        const data = EVENTOS[nombre];
+
+        const coincideNombre = nombre.toLowerCase().includes(texto);
+        const coincideAlias = data.alias.some(a => a.includes(texto));
+
+        if (coincideNombre || coincideAlias) {
+            suggestionBox.innerHTML += `
+                <div class="suggestion-item ${data.tipo==="NUCLEO"?"nucleo":"sec"}"
+                     onclick="selectEvent(this,'${nombre}')">
+                     ${nombre}
+                </div>
+            `;
+        }
+    }
+}
+
+function selectEvent(element, nombre) {
+    const parent = element.closest(".evento-box");
+    parent.querySelector("input[name='nombre_evento']").value = nombre;
+    parent.querySelector(".suggestions").innerHTML = "";
+}
+
+function togglePanel(button) {
+
+    const parent = button.closest(".evento-box");
+    const existing = parent.querySelector(".dropdown-panel");
+
+    if (existing) {
+        existing.remove();
+        return;
+    }
+
+    const tipo = parent.querySelector("select[name='tipo_interno']").value;
+
+    const panel = document.createElement("div");
+    panel.className = "dropdown-panel";
+
+    let html = "";
+
+    for (let nombre in EVENTOS) {
+
+    const data = EVENTOS[nombre];
+    const divisa = parent.querySelector("select[name='divisa_evento']").value;
+
+    if (data.divisa === divisa && data.tipo === tipo) {
+        html += `
+            <div class="dropdown-item">
+                <input type="checkbox" value="${nombre}">
+                <label>${nombre}</label>
+            </div>
+        `;
+    }
+}
+
+    html += `
+        <button type="button" class="apply-btn"
+            onclick="applySelection(this,'${tipo}')">
+            Aplicar
+        </button>
+    `;
+
+    panel.innerHTML = html;
+
+    parent.appendChild(panel);
+}
+
+function applySelection(button, tipo) {
+
+    const panel = button.closest(".dropdown-panel");
+    const checks = panel.querySelectorAll("input[type='checkbox']:checked");
+
+    checks.forEach(cb => {
+
+        const nombre = cb.value;
+
+        addEvent(nombre, tipo);
+
+        const bloque = EVENTOS[nombre].bloque;
+
+if (typeof BLOQUES !== "undefined" && BLOQUES[bloque]) {
+
+    BLOQUES[bloque].nucleo.forEach(ev => {
+        addEvent(ev, "NUCLEO");
+    });
+
+    BLOQUES[bloque].secundario.forEach(ev => {
+        addEvent(ev, "SECUNDARIO");
+    });
+
+}
+
+    });
+
+    panel.remove();
+
+}
+
+// ... (aquí termina tu función addEvent)
+addEvent();
+
+// --- AQUÍ EMPIEZA LA CORRECCIÓN: TODO EL JS DEBE ESTAR DENTRO DEL SCRIPT ---
+const canvas = document.getElementById('canvas-network');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function initCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+class Particle {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        /* VOLUMEN: Radio aumentado de 1.5 a 3.0 */
+        this.radius = 3.0; 
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+        ctx.fill();
+    }
+}
+
+function createParticles() {
+    particles = [];
+    for (let i = 0; i < 80; i++) {
+        particles.push(new Particle());
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, index) => {
+        p.update();
+        p.draw();
+        for (let j = index + 1; j < particles.length; j++) {
+            const dx = p.x - particles[j].x;
+            const dy = p.y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            /* VOLUMEN: Distancia de conexión aumentada de 150 a 200 */
+            if (dist < 200) { 
+                ctx.beginPath();
+                /* VOLUMEN: Grosor de línea aumentado de 0.5 a 1.2 */
+                ctx.strokeStyle = `rgba(0, 242, 255, ${1 - dist / 200 - 0.5})`;
+                ctx.lineWidth = 1.2; 
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
+            }
+        }
+    });
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+    initCanvas();
+    createParticles();
+});
+
+initCanvas();
+createParticles();
+animate();
+
+</script> 
+
+{% endblock %}

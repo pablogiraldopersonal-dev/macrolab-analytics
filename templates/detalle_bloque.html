@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle Bloque - MacroLab</title>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
+    <style>
+        /* ===== BASE & NEURAL BACKGROUND ===== */
+        body {
+            margin: 0;
+            background-color: #050a18;
+            font-family: 'Inter', "Segoe UI Emoji", sans-serif;
+            color: white;
+            overflow: hidden; /* Evitamos scroll global, usamos paneles */
+        }
+
+        #canvas-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .layout {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== PANEL IZQUIERDO (GLASS) ===== */
+        .panel-izq {
+            width: 30%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(0, 242, 255, 0.2);
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* ===== PANEL DERECHO (CHART) ===== */
+        .panel-der {
+            width: 70%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* ===== CARDS CRISTALINAS ===== */
+        .card {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #38bdf8;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        /* ===== BOTONES ===== */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .volver-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: rgba(31, 41, 55, 0.8);
+            color: #e2ebf0;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            transition: 0.3s;
+        }
+
+        .volver-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #00f2ff;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        /* ===== ESTADOS Y COLORES ===== */
+        .verde { color: #22c55e; text-shadow: 0 0 5px rgba(34, 197, 94, 0.4); }
+        .rojo { color: #ef4444; text-shadow: 0 0 5px rgba(239, 68, 68, 0.4); }
+        .gris { color: #94a3b8; }
+
+        .badge-ok { background: rgba(6, 78, 59, 0.6); border: 1px solid #22c55e; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; color: #22c55e; }
+        .badge-bad { background: rgba(76, 29, 29, 0.6); border: 1px solid #ef4444; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; color: #ef4444; }
+
+        .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .dot-nucleo { background-color: #22c55e; box-shadow: 0 0 5px #22c55e; }
+        .dot-secundario { background-color: #facc15; box-shadow: 0 0 5px #facc15; }
+
+        /* ===== TABLA DE DATOS ===== */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { color: #94a3b8; font-size: 11px; text-transform: uppercase; padding: 8px 4px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        td { padding: 10px 4px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        #tradingview_chart { height: 100%; width: 100%; }
+
+    </style>
+</head>
+
+<body>
+
+<canvas id="canvas-network"></canvas>
+
+<div class="layout">
+
+    <div class="panel-izq">
+
+        <div class="btn-group">
+            <a href="/bloques" class="volver-btn">⬅ Volver</a>
+            <a href="https://www.tradingview.com/chart/?symbol={{ simbolo_tv }}" target="_blank" class="volver-btn">🔎 TradingView</a>
+        </div>
+
+        <div class="card">
+            <h2>🧠 Info Pre-Evento</h2>
+            <p><strong>Divisa:</strong> {{ bloque[11] }} {{ bloque[3] }}</p>
+            <p><strong>Categoría:</strong> {{ bloque[5] }}</p>
+            <p><strong>Sesgo previo:</strong> 
+                {% if bloque[6] == "Alcista" %}
+                    <span class="verde">{{ bloque[6] }}</span>
+                {% elif bloque[6] == "Bajista" %}
+                    <span class="rojo">{{ bloque[6] }}</span>
+                {% else %}
+                    <span class="gris">{{ bloque[6] }}</span>
+                {% endif %}
+            </p>
+            <p><strong>Clasificación:</strong> {{ bloque[8] }}</p>
+        </div>
+
+        <div class="card">
+            <h2>📊 Info Post-Evento</h2>
+            {% if not bloque[7] %}
+                <div style="text-align:center; padding: 10px;">
+                    <span class="gris">🕒 Pendiente publicación</span>
+                </div>
+            {% else %}
+                <p><strong>Sesgo real:</strong> 
+                    {% if bloque[7] == "Alcista" %}
+                        <span class="verde">{{ bloque[7] }}</span>
+                    {% elif bloque[7] == "Bajista" %}
+                        <span class="rojo">{{ bloque[7] }}</span>
+                    {% else %}
+                        <span class="gris">{{ bloque[7] }}</span>
+                    {% endif %}
+                </p>
+
+                {% if bloque[6] == bloque[7] %}
+                    <div class="badge-ok">✔ Sesgo Confirmado</div>
+                {% else %}
+                    <div class="badge-bad">✖ Sesgo Fallido</div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>📋 Datos del Bloque</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Evento</th>
+                        <th>Act.</th>
+                        <th>Prev.</th>
+                        <th>Ant.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in eventos %}
+                    <tr>
+                        <td>
+                            <span class="dot {% if e[6] == 'NUCLEO' %}dot-nucleo{% else %}dot-secundario{% endif %}"></span>
+                            {{ e[2] }}
+                        </td>
+                        <td class="verde" style="font-weight:bold;">{{ e[5] if e[5] else "—" }}</td>
+                        <td>{{ e[3] }}</td>
+                        <td>{{ e[4] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="panel-der">
+        <div id="tradingview_chart"></div>
+    </div>
+
+</div>
+
+<script>
+    // Configuración TradingView
+    const simbolos = {
+        "USD": "OANDA:USDJPY",
+        "EUR": "OANDA:EURUSD",
+        "CAD": "OANDA:USDCAD",
+        "GBP": "OANDA:GBPUSD",
+        "AUD": "OANDA:AUDUSD",
+        "JPY": "OANDA:USDJPY"
+    };
+
+    const divisa = "{{ bloque[3] }}";
+    const simbolo = simbolos[divisa] || "OANDA:EURUSD";
+
+    new TradingView.widget({
+        "autosize": true,
+        "symbol": simbolo,
+        "interval": "1",
+        "timezone": "America/Bogota",
+        "theme": "dark",
+        "style": "1",
+        "locale": "es",
+        "toolbar_bg": "#050a18",
+        "enable_publishing": false,
+        "hide_side_toolbar": false,
+        "range": "3h",
+        "container_id": "tradingview_chart"
+    });
+
+    // --- ANIMACIÓN RED NEURONAL ---
+    const canvas = document.getElementById('canvas-network');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function initCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.vx = (Math.random() - 0.5) * 0.4;
+            this.vy = (Math.random() - 0.5) * 0.4;
+            this.radius = 2.5;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+            ctx.fill();
+        }
+    }
+
+    function createParticles() {
+        particles = [];
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, index) => {
+            p.update(); p.draw();
+            for (let j = index + 1; j < particles.length; j++) {
+                const dx = p.x - particles[j].x;
+                const dy = p.y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 150) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(0, 242, 255, ${1 - dist / 150 - 0.7})`;
+                    ctx.lineWidth = 0.6;
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        });
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => { initCanvas(); createParticles(); });
+    initCanvas(); createParticles(); animate();
+</script>
+
+</body>
+</html>

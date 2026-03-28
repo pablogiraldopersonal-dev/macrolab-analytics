@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    #canvas-network { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+    
+    .profile-container {
+        position: relative;
+        z-index: 10;
+        max-width: 900px;
+        margin: 15vh auto 50px auto;
+        padding: 0 20px;
+    }
+
+    .profile-card {
+        background: rgba(15, 23, 42, 0.8) !important;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 242, 255, 0.2);
+        border-radius: 24px;
+        padding: 60px 40px;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Avatar Profesional con Carga de Foto */
+    .avatar-wrapper {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 30px auto;
+    }
+
+    .profile-avatar-img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #00f2ff;
+        box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+    }
+
+    .upload-hint {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: #00f2ff;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f172a;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    /* Info Principal - Identidad Actualizada */
+    .profile-name { font-size: 2.5rem; font-weight: 800; color: white; margin: 0; }
+    .profile-role { color: #00f2ff; letter-spacing: 4px; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 40px; opacity: 0.8; }
+
+    /* Formulario de Configuración */
+    .config-section {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        padding: 30px;
+        margin-top: 20px;
+        text-align: left;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+    
+    .input-group input {
+        width: 100%;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 12px 15px;
+        border-radius: 8px;
+        color: white;
+        transition: 0.3s;
+        box-sizing: border-box;
+    }
+
+    .input-group input:focus { border-color: #00f2ff; outline: none; background: rgba(0, 242, 255, 0.05); }
+    .input-group input[readonly] { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-save {
+        width: 100%;
+        background: linear-gradient(90deg, #00f2ff, #1d4ed8);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: 0.3s;
+    }
+
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 242, 255, 0.4); }
+
+    .status-msg { color: #22c55e; font-size: 0.9rem; margin-top: 15px; text-align: center; }
+</style>
+
+<canvas id="canvas-network"></canvas>
+
+<div class="profile-container">
+    <div class="profile-card">
+        <form action="/perfil" method="POST" enctype="multipart/form-data">
+            
+            <div class="avatar-wrapper">
+                <img src="{{ url_for('static', filename='uploads/perfiles/' + session.get('foto_perfil', 'default_user.png')) }}" 
+                     alt="Avatar" class="profile-avatar-img" id="preview"
+                     onerror="this.src='https://ui-avatars.com/api/?name={{ session.get('nombre') }}&background=00f2ff&color=fff';">
+                <label for="foto" class="upload-hint">
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="foto" name="foto" style="display: none;" onchange="previewImage(this)">
+            </div>
+
+            <h1 class="profile-name">{{ usuario['nombre_completo'] }}</h1>
+            
+            <p class="profile-role">TRADER | MACROLAB ANALYTICS</p>
+
+            <div class="config-section">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Nombre en Pantalla</label>
+                        <input type="text" name="nombre_completo" value="{{ usuario['nombre_completo'] }}" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Username (Login)</label>
+                        <input type="text" name="username" value="{{ usuario['username'] }}" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" value="********" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Zona Horaria</label>
+                        <input type="text" value="GMT-5 (Bucaramanga, CO)" readonly>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save">Guardar Cambios</button>
+                {% if mensaje %}<div class="status-msg"><i class="fas fa-check-circle"></i> {{ mensaje }}</div>{% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Tu script de JS de antes para previsualizar imagen y partículas
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    const canvas = document.getElementById('canvas-network');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function init() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    class P {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.v = (Math.random() - 0.5) * 0.3;
+        }
+        draw() {
+            ctx.beginPath(); ctx.arc(this.x, this.y, 1.5, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.3)'; ctx.fill();
+        }
+    }
+    for(let i=0; i<70; i++) particles.push(new P());
+    function loop() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        particles.forEach(p => {
+            p.x += p.v; p.y += p.v;
+            if(p.x<0 || p.x>canvas.width) p.v*=-1;
+            p.draw();
+        });
+        requestAnimationFrame(loop);
+    }
+    init(); loop();
+</script>
+{% endblock %}

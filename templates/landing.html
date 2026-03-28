@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacroLab Analytics | Private Terminal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #050a18;
+            --cyan-neon: #00f2ff;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #canvas-net {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 10px 30px;
+            background: rgba(10, 25, 49, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+            z-index: 100;
+        }
+
+        .language-selector {
+            position: relative;
+            margin-right: 15px;
+            padding: 5px 0;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            color: var(--text-muted);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+        }
+
+        .lang-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #0a1931;
+            border: 1px solid var(--cyan-neon);
+            border-radius: 8px;
+            min-width: 140px;
+            margin-top: 2px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .language-selector:hover .lang-dropdown {
+            display: block;
+        }
+
+        .lang-option {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .lang-option:hover {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--cyan-neon);
+        }
+
+        .ceo-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .hero {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding-bottom: 20px;
+        }
+
+        .hero-logo {
+            height: 110px; 
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 255, 0.3));
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            letter-spacing: 1px;
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .neon-text {
+            color: var(--cyan-neon);
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+        }
+
+        .hero-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin: 15px 0 35px 0;
+            max-width: 550px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .cta-button {
+            padding: 14px 40px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            border: 1px solid var(--cyan-neon);
+            border-radius: 4px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .cta-button:hover {
+            background: var(--cyan-neon);
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.4);
+        }
+
+        /* --- FEATURES (HORIZONTAL Y MEJORADO) --- */
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 60px;
+            z-index: 10;
+        }
+
+        .feature-card {
+            position: relative;
+            background: rgba(10, 25, 49, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 4px;
+            width: 170px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: 0.4s ease;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--cyan-neon);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.1);
+        }
+
+        .card-glow {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan-neon), transparent);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .feature-card:hover .card-glow { opacity: 1; }
+
+        .feature-card i {
+            font-size: 1.6rem;
+            color: var(--cyan-neon);
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.4));
+        }
+
+        .feature-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .feature-card-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feature-card-status {
+            font-size: 0.55rem;
+            color: var(--cyan-neon);
+            opacity: 0.6;
+            font-family: monospace;
+        }
+
+        .landing-footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 0.65rem;
+            color: rgba(148, 163, 184, 0.4);
+            letter-spacing: 1.5px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-net"></canvas>
+
+    <header class="top-header">
+        <div class="language-selector">
+            <div class="lang-btn">
+                <i class="fas fa-globe"></i>
+                <span>{{ session.get('language', 'español').upper() }}</span>
+                <i class="fas fa-chevron-down" style="font-size: 0.5rem;"></i>
+            </div>
+            <div class="lang-dropdown">
+                <a href="/set_language/english" class="lang-option">🇺🇸 ENGLISH</a>
+                <a href="/set_language/español" class="lang-option">🇲🇽 ESPAÑOL</a>
+                <a href="/set_language/français" class="lang-option">🇫🇷 FRANÇAIS</a>
+                <a href="/set_language/português" class="lang-option">🇵🇹 PORTUGUÊS</a>
+            </div>
+        </div>
+
+        <div class="ceo-pill">
+            <i class="fas fa-user-circle"></i>
+            <span>PABLO GIRALDO | DIRECTOR GENERAL</span>
+        </div>
+    </header>
+
+    <section class="hero">
+        <img src="{{ url_for('static', filename='img/logo_analytics.png') }}" class="hero-logo">
+        <h1>MACRO<span class="neon-text">LAB</span> ANALYTICS</h1>
+        <p class="hero-desc">{{ textos.subtitulo }}</p>
+        <a href="/login" class="cta-button">{{ textos.boton }}</a>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="card-glow"></div>
+                <i class="fas fa-microchip"></i>
+                <div class="feature-content">
+                    <span class="feature-card-title">{{ textos.hub }}</span>
+                    <span class="feature-card-status">SYSTEM ACTIVE</span>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-glow"></div>
+                <i class="fas fa-server"></i>
+                <div class="feature-content">
+                    <span class="feature-card-title">{{ textos.assets }}</span>
+                    <span class="feature-card-status">SYNCED</span>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="card-glow"></div>
+                <i class="fas fa-fingerprint"></i>
+                <div class="feature-content">
+                    <span class="feature-card-title">{{ textos.access }}</span>
+                    <span class="feature-card-status">SECURED</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        OPERATIONAL UNIT UNDER GLOBAL OVERSIGHT OF <b>PABLO GIRALDO</b>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('canvas-net');
+        const ctx = canvas.getContext('2d');
+        let points = [];
+        const maxPoints = 80;
+
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            points = [];
+            for (let i = 0; i < maxPoints; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+            ctx.strokeStyle = 'rgba(0, 242, 255, 0.1)';
+
+            points.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+                ctx.fill();
+
+                for (let j = i + 1; j < points.length; j++) {
+                    const p2 = points[j];
+                    const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if (dist < 130) {
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        draw();
+    </script>
+</body>
+</html>

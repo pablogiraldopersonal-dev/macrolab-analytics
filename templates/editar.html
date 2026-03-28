@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Bloque - MacroLab</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0b1220;
+            color: white;
+            padding: 40px;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: #111827;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            color: white;
+            border-radius: 6px;
+        }
+
+        .evento-box {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        /* 🔥 NUEVO: diferenciación visual */
+        .nucleo-box {
+            border-left: 5px solid #22c55e;
+            background: #0b1f16;
+        }
+
+        .secundario-box {
+            border-left: 5px solid #facc15;
+            background: #1a1a0f;
+        }
+
+        .evento-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #22c55e;
+        }
+
+        .evento-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .delete-btn:hover {
+            opacity: 0.8;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #22c55e;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .volver {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>✏️ Editar Bloque Completo</h1>
+
+<form method="POST">
+
+<div class="card">
+
+    <h3>📅 Datos del Bloque</h3>
+
+    <div class="top-grid">
+        <div>
+            <label>Fecha</label>
+            <input type="date" name="fecha" value="{{ bloque[1] }}" required>
+        </div>
+
+        <div>
+            <label>Hora</label>
+            <input type="time" name="hora" value="{{ bloque[2] }}" required>
+        </div>
+
+        <div>
+            <label>Divisa</label>
+            <select name="divisa">
+                <option value="USD" {% if bloque[3] == "USD" %}selected{% endif %}>USD</option>
+                <option value="EUR" {% if bloque[3] == "EUR" %}selected{% endif %}>EUR</option>
+                <option value="GBP" {% if bloque[3] == "GBP" %}selected{% endif %}>GBP</option>
+                <option value="CAD" {% if bloque[3] == "CAD" %}selected{% endif %}>CAD</option>
+                <option value="AUD" {% if bloque[3] == "AUD" %}selected{% endif %}>AUD</option>
+                <option value="JPY" {% if bloque[3] == "JPY" %}selected{% endif %}>JPY</option>
+            </select>
+        </div>
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h3>📊 Eventos del Bloque</h3>
+
+    {% for e in eventos %}
+    <div class="evento-box {% if e[6] == 'NUCLEO' %}nucleo-box{% else %}secundario-box{% endif %}">
+
+        <!-- BOTÓN ELIMINAR -->
+        <a href="/eliminar_evento/{{ e[0] }}/{{ bloque[0] }}"
+           class="delete-btn"
+           onclick="return confirm('¿Eliminar este evento?')">
+           🗑
+        </a>
+
+        <div class="evento-title">
+            Evento ID {{ e[0] }}
+            {% if e[6] == "NUCLEO" %}
+                <span style="color:#22c55e;">(NÚCLEO)</span>
+            {% else %}
+                <span style="color:#facc15;">(SECUNDARIO)</span>
+            {% endif %}
+        </div>
+
+        <div class="evento-grid">
+
+            <input type="text" name="nombre_{{ e[0] }}" value="{{ e[2] }}">
+
+            <input type="text" name="prevision_{{ e[0] }}" value="{{ e[3] }}" placeholder="Previsión">
+
+            <input type="text" name="anterior_{{ e[0] }}" value="{{ e[4] }}" placeholder="Anterior">
+
+            <input type="text" name="real_{{ e[0] }}" value="{{ e[5] if e[5] else '' }}" placeholder="Real">
+
+            <select name="tipo_{{ e[0] }}">
+                <option value="NUCLEO" {% if e[6] == "NUCLEO" %}selected{% endif %}>NUCLEO</option>
+                <option value="SECUNDARIO" {% if e[6] == "SECUNDARIO" %}selected{% endif %}>SECUNDARIO</option>
+            </select>
+
+        </div>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+<button type="submit">💾 Guardar Cambios</button>
+
+</form>
+
+<br><br>
+<a href="/bloques" class="volver">⬅ Volver a Bloques</a>
+
+</body>
+</html>

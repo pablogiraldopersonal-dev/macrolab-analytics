@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>MacroLab Admin</title>
+</head>
+
+<body>
+
+    <h2>MacroLab - Herramientas</h2>
+
+    <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc;">
+        <h3>Actualizar Rango Específico (Pasado/Futuro)</h3>
+        <input type="date" id="fecha_inicio">
+        <input type="date" id="fecha_fin">
+        <button onclick="actualizarSemanaPersonalizada()">
+            Actualizar Rango
+        </button>
+    </div>
+
+    <div style="padding: 15px; border: 1px solid #ccc;">
+        <h3>Actualizar Semana Actual</h3>
+        <button onclick="actualizarSemana()">
+            Actualizar Semana Macro
+        </button>
+    </div>
+
+    <script>
+        function actualizarSemana() {
+            fetch("/actualizar-semana")
+                .then(r => r.json())
+                .then(data => {
+                    alert("Semana macro actualizada: " + data.eventos_guardados + " eventos");
+                })
+        }
+
+        function actualizarSemanaPersonalizada() {
+            const inicio = document.getElementById("fecha_inicio").value;
+            const fin = document.getElementById("fecha_fin").value;
+
+            if (!inicio || !fin) {
+                alert("Por favor selecciona ambas fechas");
+                return;
+            }
+
+            fetch(`/actualizar-semana?fecha_inicio=${inicio}&fecha_fin=${fin}`)
+                .then(r => r.json())
+                .then(data => {
+                    alert("Rango actualizado: " + data.eventos_guardados + " eventos");
+                })
+        }
+    </script>
+
+</body>
+
+</html>

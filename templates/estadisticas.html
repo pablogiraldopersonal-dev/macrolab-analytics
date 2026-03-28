@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Estadísticas - MacroLab</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #0b1220;
+            color: white;
+            padding: 40px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #111827;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 400px;
+        }
+
+        .dato {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .verde { color: #22c55e; }
+        .rojo { color: #ef4444; }
+        .gris { color: #9ca3af; }
+
+        a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        a:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>📊 Estadísticas Macro</h1>
+
+<div class="card">
+    <div class="dato">Total bloques: <strong>{{ total }}</strong></div>
+    <div class="dato verde">Confirmados: {{ confirmados }}</div>
+    <div class="dato rojo">Fallidos: {{ fallidos }}</div>
+    <div class="dato gris">Pendientes: {{ pendientes }}</div>
+    <hr>
+    <div class="dato">
+        Tasa de acierto:
+        <strong class="verde">{{ tasa }}%</strong>
+    </div>
+</div>
+
+<br>
+<a href="/bloques">⬅ Volver a Bloques</a>
+
+</body>
+</html>

@@ -1,0 +1,529 @@
+{% extends "base.html" %}
+{% block content %}
+    <style>
+        body {
+            background-color: #050a18;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            color: #e2ebf0;
+            overflow-x: hidden;
+        }
+
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        #canvas-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        h1 { margin-bottom: 20px; }
+        .filtros {
+            background: rgba(17, 24, 39, 0.8); /* 0.8 de opacidad para ver el fondo */
+            backdrop-filter: blur(10px);      /* Efecto desenfoque */
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+        .filtros label {
+            margin-right: 8px;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+        select, button, input[type="date"] {
+            padding: 6px 10px;
+            margin-right: 15px;
+            background: #1f2937;
+            color: white;
+            border: 1px solid #374151;
+            border-radius: 5px;
+        }
+        button {
+            cursor: pointer;
+            background: #22c55e;
+            border: none;
+            font-weight: bold;
+        }
+        button:hover { opacity: 0.9; }
+        .btn-actualizar { background: #3b82f6; } 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(17, 24, 39, 0.8); /* 0.8 de opacidad */
+            backdrop-filter: blur(10px);             /* Efecto desenfoque */
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #1f2937;
+            text-align: left;
+        }
+        th { background-color: #1f2937; }
+        .verde { color: #22c55e; }
+        .rojo { color: #ef4444; }
+        .gris { color: #9ca3af; }
+        .flag-img {
+            width: 22px;
+            height: 16px;
+            margin-right: 6px;
+            vertical-align: middle;
+            border-radius: 2px;
+        }
+        .acciones a { margin-right: 8px; font-size: 16px; }
+        a { color: #60a5fa; text-decoration: none; }
+        a:hover { opacity: 0.8; }
+
+        tr:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .btn-actualizar:active {
+            transform: scale(0.98);
+        }
+
+        /* Contenedor principal multiselect */
+        .multi-select-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 15px;
+        }
+
+        .select-trigger {
+            background: #1f2937;
+            color: white;
+            border: 1px solid #374151;
+            border-radius: 5px;
+            padding: 6px 30px 6px 12px;
+            cursor: pointer;
+            min-width: 140px;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .select-trigger::after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: #1f2937;
+            min-width: 180px;
+            border: 1px solid #374151;
+            border-radius: 5px;
+            z-index: 100;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.5);
+            padding: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .dropdown-content label {
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            color: #f3f4f6;
+            cursor: pointer;
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .dropdown-content label:hover {
+            background: #374151;
+        }
+
+        .dropdown-content input {
+            margin-right: 10px;
+        }
+
+        .show { display: block; }
+
+        /* Estilos nuevos para selección masiva */
+        input[type="checkbox"] {
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+
+        tr.selected {
+            background-color: rgba(59, 130, 246, 0.15) !important;
+        }
+
+        .btn-ver {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            border-radius: 6px;
+            color: #00f2ff;
+            text-decoration: none;
+            transition: 0.3s;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .btn-ver:hover {
+            background: rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 12px rgba(0, 242, 255, 0.6);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+    <canvas id="canvas-network"></canvas>
+    <div class="main-wrapper">
+
+    <h1>📊 MacroLab - Oportunidades del Mercado</h1>
+    
+    <p style="color:#9ca3af; margin-bottom:25px;">
+    Sistema automático de análisis macroeconómico basado en bloques estructurales.
+    </p>
+    </div>
+
+<div class="filtros">
+    <label>Divisa:</label>
+    <div class="multi-select-container">
+        <div class="select-trigger" onclick="toggleDropdown('dropdown-divisa')">Divisas...</div>
+        <div id="dropdown-divisa" class="dropdown-content">
+            <label><input type="checkbox" value="USD" onchange="aplicarFiltrosFrontend()"> USD</label>
+            <label><input type="checkbox" value="EUR" onchange="aplicarFiltrosFrontend()"> EUR</label>
+            <label><input type="checkbox" value="CAD" onchange="aplicarFiltrosFrontend()"> CAD</label>
+            <label><input type="checkbox" value="AUD" onchange="aplicarFiltrosFrontend()"> AUD</label>
+            <label><input type="checkbox" value="GBP" onchange="aplicarFiltrosFrontend()"> GBP</label>
+            <label><input type="checkbox" value="JPY" onchange="aplicarFiltrosFrontend()"> JPY</label>
+        </div>
+    </div>
+
+    <div class="multi-select-container">
+        <div class="select-trigger" onclick="toggleDropdown('dropdown-tipo')">Categorías...</div>
+        <div id="dropdown-tipo" class="dropdown-content">
+            <label><input type="checkbox" value="Empleo" onchange="aplicarFiltrosFrontend()"> 💼 Empleo</label>
+            <label><input type="checkbox" value="Inflación" onchange="aplicarFiltrosFrontend()"> 📈 Inflación</label>
+            <label><input type="checkbox" value="Bancos Centrales" onchange="aplicarFiltrosFrontend()"> 🏦 Bancos</label>
+            <label><input type="checkbox" value="Actividad" onchange="aplicarFiltrosFrontend()"> 🏭 Actividad</label>
+            <label><input type="checkbox" value="Crecimiento" onchange="aplicarFiltrosFrontend()"> 📊 Crecimiento</label>
+        </div>
+    </div>
+
+    <label>Desde:</label>
+    <input type="date" id="filtro-desde" onchange="aplicarFiltrosFrontend()">
+
+    <label>Hasta:</label>
+    <input type="date" id="filtro-hasta" onchange="aplicarFiltrosFrontend()">
+
+    <label style="margin-right:15px; cursor:pointer;">
+        <input type="checkbox" id="filtro-operables" onchange="aplicarFiltrosFrontend()">
+        Solo Operables 🔥
+    </label>
+
+    <button type="button" class="btn-actualizar" onclick="actualizarSemana()">
+        ⚡ Actualizar Datos
+    </button>
+    
+    <button onclick="window.location.href='/'" style="background:#374151; color:white; padding:7px 12px; border-radius:5px; font-size:13px; font-weight:bold; margin-right: 5px;">
+        🏠 Inicio
+    </button>
+
+    <button id="btn-limpiar" onclick="manejadorBotonLimpiar()" style="background:#4b5563; color:white; padding:7px 12px; border-radius:5px; font-size:13px; font-weight:bold;">
+        Limpiar
+    </button>
+</div>
+
+{% set hay_operables = bloques | selectattr(9, 'in', ['Operable','Condicional']) | list %}
+
+{% if hay_operables|length > 0 %}
+<div style="background:#052e16; border:1px solid #22c55e; padding:15px; border-radius:10px; margin-bottom:20px;">
+    🟢 <strong>Oportunidades detectadas:</strong> {{ hay_operables|length }} evento(s) operable(s)
+</div>
+{% endif %}
+
+<table>
+    <tr>
+        <th><input type="checkbox" id="select-all" onclick="seleccionarTodo(this)"></th>
+        <th>ID</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Divisa</th>
+        <th>Tipo</th>
+        <th>Relevancia</th>
+        <th>Sesgo</th>
+        <th>Clasificación</th>
+        <th>Decisión</th>
+        <th>Ejecución</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+    </tr>
+
+    {% for b in bloques %}
+    <tr data-categoria="{{ b[5]|default('') }}" 
+        {% if b[9] == "Operable" %} style="background-color: rgba(34,197,94,0.1);"
+        {% elif b[9] == "Condicional" %} style="background-color: rgba(250,204,21,0.1);" {% endif %}>
+        
+        <td><input type="checkbox" class="select-item" value="{{ b[0] }}" onchange="toggleFilaSeleccionada(this)"></td>
+        <td>{{ loop.index }}</td>
+        <td class="fecha-celda" data-utc-fecha="{{ b[1] }}">{{ b[1] }}</td>
+        <td class="hora-celda" data-utc-hora="{{ b[2] }}"><strong>{{ b[2] }}</strong></td>
+        <td>
+            <img class="flag-img" src="https://flagcdn.com/w40/{{ b[3]|lower|replace('usd','us')|replace('eur','eu')|replace('gbp','gb')|replace('aud','au')|replace('cad','ca')|replace('jpy','jp') }}.png">
+            {{ b[3] }}
+        </td>
+        <td>{{ b[4]|replace('_',' ') }}</td>
+        <td>
+            {% if b[5] == "NUCLEO" %}<span class="verde">Núcleo</span>
+            {% elif b[5] == "CONDICIONAL" %}<span style="color:#60a5fa;">Condicional</span>
+            {% else %}<span class="gris">{{ b[5] }}</span>{% endif %}
+        </td>
+        <td>
+            {% if b[6] == "Alcista" %}<span class="verde">{{ b[6] }}</span>
+            {% elif b[6] == "Bajista" %}<span class="rojo">{{ b[6] }}</span>
+            {% else %}<span class="gris">{{ b[6] }}</span>{% endif %}
+        </td>
+        <td>
+            {% if b[8] == "Fuerte" %}<span class="verde">🔥 {{ b[8] }}</span>
+            {% elif b[8] == "Moderado" %}<span style="color:#facc15;">⚠ {{ b[8] }}</span>
+            {% elif b[8] == "Mixto" %}<span style="color:#60a5fa;">🔀 {{ b[8] }}</span>
+            {% else %}<span class="gris">🚫 {{ b[8] }}</span>{% endif %}
+        </td>
+        <td>
+            {% if b[9] == "Operable" %}<span class="verde">🟢 Operable</span>
+            {% elif b[9] == "Condicional" %}<span style="color:#facc15;">🟡 Condicional</span>
+            {% else %}<span class="gris">—</span>{% endif %}
+        </td>
+        <td>
+            {% if b[9] == "Operable" %}<span class="verde">⏱️ Hora</span>
+            {% elif b[9] == "Condicional" %}<span style="color:#facc15;">📉 Cotización</span>
+            {% else %}<span class="gris">—</span>{% endif %}
+        </td>
+        <td>
+            {% if b[7] is none or b[7] == "" %}<span class="gris">—</span>
+            {% elif b[7] == "Neutral" %}<span style="color:#9ca3af;">📊 Dato neutro</span>
+            {% elif b[6] == b[7] %}<span class="verde">📊 Dato alineado</span>
+            {% else %}<span class="rojo">❌ Dato contrario</span>{% endif %}
+        <td class="acciones">
+            <a href="/bloque/{{ b[0] }}" class="btn-ver" title="Ver Análisis">👁️</a>
+            <a href="/editar/{{ b[0] }}">✏️</a>
+            <a href="/eliminar/{{ b[0] }}" onclick="return confirm('¿Seguro?')">🗑️</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<script>
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    document.querySelectorAll('.dropdown-content').forEach(d => { if (d.id !== id) d.classList.remove('show'); });
+    dropdown.classList.toggle('show');
+    dropdown.onclick = (e) => e.stopPropagation();
+}
+
+window.onclick = function(event) {
+    if (!event.target.matches('.select-trigger')) {
+        document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+    }
+}
+
+function aplicarFiltrosFrontend() {
+    const divisasSelt = Array.from(document.querySelectorAll('#dropdown-divisa input:checked')).map(i => i.value);
+    const tiposSelt = Array.from(document.querySelectorAll('#dropdown-tipo input:checked')).map(i => i.value.toLowerCase());
+    const desde = document.getElementById("filtro-desde").value;
+    const hasta = document.getElementById("filtro-hasta").value;
+    const soloOperables = document.getElementById("filtro-operables").checked;
+
+    const filas = document.querySelectorAll("table tr:not(:first-child)");
+    const limpiarTexto = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+    filas.forEach(fila => {
+        const categoriaFila = limpiarTexto(fila.getAttribute('data-categoria') || "");
+        const celdaDivisa = fila.children[4].innerText.trim();
+        const celdaFecha = fila.children[2].innerText.trim();
+        const celdaEjecucion = fila.children[10].innerText.trim();
+
+        let visible = true;
+        if (divisasSelt.length > 0 && !divisasSelt.some(d => celdaDivisa.includes(d))) visible = false;
+        if (tiposSelt.length > 0 && !tiposSelt.some(t => categoriaFila.includes(limpiarTexto(t)))) visible = false;
+        if (desde && celdaFecha < desde) visible = false;
+        if (hasta && celdaFecha > hasta) visible = false;
+        if (soloOperables && !celdaEjecucion.includes("Operable") && !celdaEjecucion.includes("Condicional")) visible = false;
+
+        fila.style.display = visible ? "" : "none";
+    });
+}
+
+function seleccionarTodo(source) {
+    const checkboxes = document.querySelectorAll('.select-item');
+    checkboxes.forEach(cb => {
+        cb.checked = source.checked;
+        toggleFilaSeleccionada(cb);
+    });
+}
+
+function toggleFilaSeleccionada(checkbox) {
+    checkbox.closest('tr').classList.toggle('selected', checkbox.checked);
+    actualizarBotonLimpiar();
+}
+
+function actualizarBotonLimpiar() {
+    const seleccionados = document.querySelectorAll('.select-item:checked').length;
+    const btn = document.getElementById("btn-limpiar");
+    if (seleccionados > 0) {
+        btn.innerHTML = `🗑️ Eliminar (${seleccionados})`;
+        btn.style.background = "#ef4444";
+    } else {
+        btn.innerHTML = "Limpiar";
+        btn.style.background = "#4b5563";
+    }
+}
+
+function manejadorBotonLimpiar() {
+    // 1. Buscamos qué filas están marcadas
+    const seleccionados = Array.from(document.querySelectorAll('.select-item:checked')).map(cb => cb.value);
+    
+    if (seleccionados.length > 0) {
+        // MODO ELIMINAR: Si hay checkboxes marcados, preguntamos y borramos
+        if (confirm(`¿Estás seguro de eliminar permanentemente estos ${seleccionados.length} bloques?`)) {
+            fetch('/eliminar-multiples', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: seleccionados })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("🗑️ " + data.message);
+                    window.location.reload(); // Recarga para limpiar la tabla
+                } else {
+                    alert("❌ Error: " + data.message);
+                }
+            })
+            .catch(err => console.error("Error en el fetch:", err));
+        }
+    } else {
+        // MODO LIMPIAR: Si NO hay nada marcado, solo limpia los filtros visuales (fechas y divisas)
+        document.querySelectorAll('.dropdown-content input').forEach(i => i.checked = false);
+        document.getElementById("filtro-desde").value = "";
+        document.getElementById("filtro-hasta").value = "";
+        document.getElementById("filtro-operables").checked = false;
+        
+        // Llamamos a tu función de filtrado para que la tabla se muestre completa otra vez
+        aplicarFiltrosFrontend();
+        console.log("✅ Filtros reseteados");
+    }
+}
+
+function actualizarSemana() {
+    const btn = document.querySelector('.btn-actualizar');
+    const originalText = btn.innerHTML;
+    const inicio = document.getElementById('filtro-desde').value;
+    const fin = document.getElementById('filtro-hasta').value;
+
+    btn.innerHTML = "⏳ Extrayendo...";
+    btn.disabled = true;
+
+    let url = "/actualizar-semana";
+    if (inicio && fin) url += `?fecha_inicio=${inicio}&fecha_fin=${fin}`;
+
+    fetch(url)
+        .then(response => {
+            if (response.ok) { alert("✅ ¡Sincronizado!"); window.location.reload(); }
+            else alert("❌ Error.");
+        })
+        .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Ejecutar conversión de horas si es necesario
+    console.log("MacroLab cargado");
+});
+
+// --- CÓDIGO DE LA RED NEURONAL ---
+const canvas = document.getElementById('canvas-network');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function initCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+class Particle {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = 1.5;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+        ctx.fill();
+    }
+}
+
+function createParticles() {
+    particles = [];
+    for (let i = 0; i < 100; i++) {
+        particles.push(new Particle());
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, index) => {
+        p.update();
+        p.draw();
+        for (let j = index + 1; j < particles.length; j++) {
+            const dx = p.x - particles[j].x;
+            const dy = p.y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(0, 242, 255, ${1 - dist / 150 - 0.2})`;
+                ctx.lineWidth = 0.5;
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
+            }
+        }
+    });
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+    initCanvas();
+    createParticles();
+});
+
+initCanvas();
+createParticles();
+animate();
+// --- FIN DEL CÓDIGO DE LA RED ---
+
+</script>
+
+{% endblock %}
